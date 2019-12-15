@@ -2,12 +2,24 @@ import {ApolloServer} from 'apollo-server';
 const typeDefs = `
 type Query {
     totalPhotos: Int!
-}`
+}
+type Mutation {
+    postPhoto(name: String! description: String): Boolean!
+}
+`
 ;
+
+const photos = [];
 
 const resolvers = {
   Query: {
-    totalPhotos: () => 41,
+    totalPhotos: () => photos.length,
+  },
+  Mutation: {
+    postPhoto(parent: any, args: any) {
+      photos.push(args);
+      return true;
+    },
   },
 };
 
