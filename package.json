@@ -2,9 +2,10 @@
   "name": "book-learning-graphql",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "ts-node src/server.ts",
+    "start:watch": "nodemon -e ts,json,graphql"
   },
   "repository": {
     "type": "git",
@@ -21,10 +22,14 @@
     "@types/jest": "^24.0.23",
     "@typescript-eslint/eslint-plugin": "^2.11.0",
     "@typescript-eslint/parser": "^2.11.0",
+    "apollo-server": "^2.9.13",
     "eslint": "^6.7.2",
     "eslint-config-google": "^0.14.0",
+    "graphql": "^14.5.8",
     "jest": "^24.9.0",
+    "nodemon": "^2.0.2",
     "ts-jest": "^24.2.0",
+    "ts-node": "^8.5.4",
     "typescript": "^3.7.3"
   }
 }
