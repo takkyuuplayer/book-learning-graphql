@@ -6,13 +6,26 @@ type Query {
     allPhotos: [Photo!]!
 }
 type Mutation {
-    postPhoto(name: String! description: String): Photo!
+    postPhoto(input: PostPhotoInput!): Photo!
 }
 type Photo {
     id: ID!
     url: String!
     name: String!
     description: String
+    category: PhotoCategory!
+}
+input PostPhotoInput {
+    name: String!
+    category: PhotoCategory = PORTRAIT
+    description: String
+}
+enum PhotoCategory {
+    SELFIE
+    PORTRAIT
+    ACTION
+    LANDSCAPE
+    GRAPHIC
 }
 `;
 
@@ -34,7 +47,7 @@ const resolvers = {
     postPhoto(parent: any, args: any) {
       const newPhoto = {
         id: ulid(),
-        ...args,
+        ...args.input,
       };
       photos.push(newPhoto);
       return newPhoto;
