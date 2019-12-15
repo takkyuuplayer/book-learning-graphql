@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "jest",
+    "test": "eslint src/**/*.ts && jest",
     "start": "ts-node src/server.ts",
     "start:watch": "nodemon -e ts,json,graphql"
   },
@@ -25,11 +25,14 @@
     "apollo-server-express": "^2.9.13",
     "eslint": "^6.7.2",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-prettier": "^3.1.2",
     "express": "^4.17.1",
     "graphql": "^14.5.8",
     "graphql-playground-middleware-express": "^1.7.12",
     "jest": "^24.9.0",
     "nodemon": "^2.0.2",
+    "prettier": "^1.19.1",
     "ts-jest": "^24.2.0",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.3",
