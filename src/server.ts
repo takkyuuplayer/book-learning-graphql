@@ -1,9 +1,11 @@
 import {ulid} from 'ulid';
 import {ApolloServer} from 'apollo-server';
+import {GraphQLScalarType} from 'graphql';
 const typeDefs = `
+scalar DateTime
 type Query {
     totalPhotos: Int!
-    allPhotos: [Photo!]!
+    allPhotos(after: DateTime): [Photo!]!
     allUsers: [User!]!
 }
 type Mutation {
@@ -15,6 +17,7 @@ type Photo {
     name: String!
     description: String
     category: PhotoCategory!
+    created: DateTime!
     postedBy: User!
     taggedUsers: [User!]!
 }
@@ -44,6 +47,7 @@ interface IPhoto {
     description: string
     category: string
     githubUser: string
+    created: string
 }
 interface IUser {
     githubLogin: string
@@ -61,9 +65,9 @@ const users = [
   {'githubLogin': 'g3', 'name': 'Charles'},
 ];
 const photos: Array<IPhoto> = [
-  {id: ulid(), name: 'p1', description: 'd1', category: 'ACTION', githubUser: 'g1'},
-  {id: ulid(), name: 'p2', description: 'd2', category: 'SELFIE', githubUser: 'g2'},
-  {id: ulid(), name: 'p3', description: 'd3', category: 'LANDSCAPE', githubUser: 'g2'},
+  {id: ulid(), name: 'p1', description: 'd1', category: 'ACTION', githubUser: 'g1', created: '3-28-1997'},
+  {id: ulid(), name: 'p2', description: 'd2', category: 'SELFIE', githubUser: 'g2', created: '1-2-1985'},
+  {id: ulid(), name: 'p3', description: 'd3', category: 'LANDSCAPE', githubUser: 'g2', created: '2018-04-15T19:09:09.308Z'},
 ];
 const tags: Array<ITag> = [
   {'photoID': photos[0].id, 'userID': 'g1'},
@@ -83,6 +87,7 @@ const resolvers = {
       const newPhoto = {
         id: ulid(),
         ...args.input,
+        created: new Date(),
       };
       photos.push(newPhoto);
       return newPhoto;
@@ -99,6 +104,13 @@ const resolvers = {
   User: {
     postedPhotos: (parent: IUser) => photos.filter((p) => p.githubUser === parent.githubLogin),
   },
+  DateTime: new GraphQLScalarType({
+    name: 'DateTime',
+    description: 'A valid date time value.',
+    parseValue: (value: string) => new Date(value),
+    serialize: (value: string) => new Date(value).toISOString(),
+    parseLiteral: (ast: any) => ast.value,
+  }),
 };
 
 const server = new ApolloServer({
