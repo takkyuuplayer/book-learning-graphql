@@ -4,6 +4,7 @@ const typeDefs = `
 type Query {
     totalPhotos: Int!
     allPhotos: [Photo!]!
+    allUsers: [User!]!
 }
 type Mutation {
     postPhoto(input: PostPhotoInput!): Photo!
@@ -14,6 +15,13 @@ type Photo {
     name: String!
     description: String
     category: PhotoCategory!
+    postedBy: User!
+}
+type User {
+    githubLogin: ID!
+    name: String
+    avatar: String
+    postedPhotos: [Photo!]!
 }
 input PostPhotoInput {
     name: String!
@@ -31,17 +39,33 @@ enum PhotoCategory {
 
 interface IPhoto {
     id: string
-    url: string
     name: string
     description: string
+    category: string
+    githubUser: string
+}
+interface IUser {
+    githubLogin: string
+    name: String
+    avatar: String
 }
 
-const photos: Array<IPhoto> = [];
+const users = [
+  {'githubLogin': 'g1', 'name': 'Alice'},
+  {'githubLogin': 'g2', 'name': 'Bob'},
+  {'githubLogin': 'g3', 'name': 'Charles'},
+];
+const photos: Array<IPhoto> = [
+  {id: ulid(), name: 'p1', description: 'd1', category: 'ACTION', githubUser: 'g1'},
+  {id: ulid(), name: 'p2', description: 'd2', category: 'SELFIE', githubUser: 'g2'},
+  {id: ulid(), name: 'p3', description: 'd3', category: 'LANDSCAPE', githubUser: 'g2'},
+];
 
 const resolvers = {
   Query: {
     totalPhotos: () => photos.length,
     allPhotos: () => photos,
+    allUsers: () => users,
   },
   Mutation: {
     postPhoto(parent: any, args: any) {
@@ -55,6 +79,10 @@ const resolvers = {
   },
   Photo: {
     url: (parent: IPhoto) => `https://yoursite.com/img/${parent.id}.jpg`,
+    postedBy: (parent: IPhoto) => users.find((u) => u.githubLogin === parent.githubUser),
+  },
+  User: {
+    postedPhotos: (parent: IUser) => photos.filter((p) => p.githubUser === parent.githubLogin),
   },
 };
 
