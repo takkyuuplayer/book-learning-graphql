@@ -1,5 +1,6 @@
 import { ulid } from 'ulid';
 import { GraphQLScalarType } from 'graphql';
+import { Db } from 'mongodb';
 
 interface IPhoto {
   id: string;
@@ -58,9 +59,24 @@ const tags: Array<ITag> = [
 ];
 
 export const Query = {
-  totalPhotos: () => photos.length,
-  allPhotos: () => photos,
-  allUsers: () => users,
+  totalPhotos(parent: any, args: any, context: any) {
+    return context.db.collection('photo').estimatedDocumentCount();
+  },
+  allPhotos: (parent: any, args: any, context: any) => {
+    return context.db
+      .collection('photos')
+      .find()
+      .toArray();
+  },
+  totalUsers(parent: any, args: any, context: any) {
+    return context.db.collection('users').estimatedDocumentCount();
+  },
+  allUsers: (parent: any, args: any, context: any) => {
+    return context.db
+      .collection('users')
+      .find()
+      .toArray();
+  },
 };
 export const Mutation = {
   postPhoto(parent: any, args: any) {
