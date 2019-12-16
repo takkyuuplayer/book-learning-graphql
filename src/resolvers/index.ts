@@ -77,6 +77,9 @@ export const Query = {
       .find()
       .toArray();
   },
+  me: (parent: any, args: any, context: any) => {
+    return context.currentUser;
+  },
 };
 export const Mutation = {
   postPhoto(parent: any, args: any) {

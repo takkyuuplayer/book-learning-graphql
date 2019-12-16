@@ -5,6 +5,7 @@ type Query {
   allPhotos(after: DateTime): [Photo!]!
   totalUsers: Int!
   allUsers: [User!]!
+  me: User
 }
 type Mutation {
   postPhoto(input: PostPhotoInput!): Photo!
