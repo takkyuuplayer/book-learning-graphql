@@ -1,6 +1,6 @@
 import { ulid } from 'ulid';
 import { GraphQLScalarType } from 'graphql';
-import { Db } from 'mongodb';
+import { authorizeWithGithub } from '../lib';
 
 interface IPhoto {
   id: string;
@@ -87,6 +87,35 @@ export const Mutation = {
     };
     photos.push(newPhoto);
     return newPhoto;
+  },
+  async githubAuth(parent: any, args: any, context: any) {
+    const {
+      message,
+      accessToken,
+      avatar_url: avatarUrl,
+      login,
+      name,
+    } = await authorizeWithGithub({
+      client_id: process.env.GH_CLIENT_ID,
+      client_secret: process.env.GH_CLIENT_SECRET,
+      code: args.code,
+    });
+
+    if (message) {
+      throw new Error(message);
+    }
+    const latestUserInfo = {
+      name,
+      githubLogin: login,
+      githubToken: accessToken,
+      avatar: avatarUrl,
+    };
+    const {
+      ops: [user],
+    } = await context.db
+      .collection('users')
+      .replaceOne({ githubLogin: login }, latestUserInfo, { upsert: true });
+    return { user, token: accessToken };
   },
 };
 export const Photo = {

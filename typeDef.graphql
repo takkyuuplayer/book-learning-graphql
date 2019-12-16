@@ -8,6 +8,7 @@ type Query {
 }
 type Mutation {
   postPhoto(input: PostPhotoInput!): Photo!
+  githubAuth(code: String!): AuthPayload!
 }
 type Photo {
   id: ID!
@@ -36,4 +37,9 @@ enum PhotoCategory {
   ACTION
   LANDSCAPE
   GRAPHIC
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
 }
