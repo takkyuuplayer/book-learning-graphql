@@ -1,4 +1,6 @@
 import { GraphQLScalarType } from 'graphql';
+import { ulid } from 'ulid';
+import faker from 'faker';
 import { authorizeWithGithub } from '../lib';
 
 interface IPhoto {
@@ -85,16 +87,48 @@ export const Mutation = {
       .replaceOne({ githubLogin: login }, latestUserInfo, { upsert: true });
     return { user, token: accessToken };
   },
+  async addFakeUsers(parent: any, args: any, context: any) {
+    const users = [];
+    for (let i = 0; i < args.count; i++) {
+      const user = {
+        githubLogin: faker.internet.userName(),
+        name: `${faker.name.firstName()} ${faker.name.lastName()}`,
+        avatar: faker.image.avatar(),
+        githubToken: ulid(),
+      };
+      users.push(user);
+    }
+    await context.db.collection('users').insert(users);
+
+    return users;
+  },
+  async fakeUserAuth(parent: any, args: any, context: any) {
+    const user = await context.db
+      .collection('users')
+      .findOne({ githubLogin: args.githubLogin });
+    if (!user) {
+      throw new Error(`Cannot find user with githubLogin "${args.githubLogin}`);
+    }
+    return {
+      token: user.githubToken,
+      user,
+    };
+  },
 };
 export const Photo = {
   id: (parent: any) => parent.id || parent._id,
   url: (parent: IPhoto) => `https://yoursite.com/img/${parent._id}.jpg`,
-  postedBy: (parent: IPhoto, args: any, context: any) =>
-    context.db.collection('users').findOne({ githubLogin: parent.userID }),
+  postedBy: async (parent: IPhoto, args: any, context: any) =>
+    await context.db
+      .collection('users')
+      .findOne({ githubLogin: parent.userID }),
 };
 export const User = {
-  postedPhotos: (parent: IUser, args: any, context: any) =>
-    context.db.collection('photos').find({ userID: parent.githubLogin }),
+  postedPhotos: async (parent: IUser, args: any, context: any) =>
+    await context.db
+      .collection('photos')
+      .find({ userID: parent.githubLogin })
+      .toArray(),
 };
 export const DateTime = new GraphQLScalarType({
   name: 'DateTime',
