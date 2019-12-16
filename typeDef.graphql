@@ -19,7 +19,6 @@ type Photo {
   category: PhotoCategory!
   created: DateTime!
   postedBy: User!
-  taggedUsers: [User!]!
 }
 type User {
   githubLogin: ID!
