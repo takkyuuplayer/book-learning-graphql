@@ -1,0 +1,16 @@
+overwrite: true
+schema: ./typeDef.graphql
+documents: null
+config:
+  useIndexSignature: true
+generates:
+  src/generated/graphql.d.ts:
+    config:
+      contextType: "../types#IContext"
+      mappers:
+        User: "../types#IUser"
+        Photo: "../types#IPhoto"
+    plugins:
+      - add: "/* eslint-disable */"
+      - "typescript"
+      - "typescript-resolvers"

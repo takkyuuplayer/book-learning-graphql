@@ -5,7 +5,9 @@
   "scripts": {
     "test": "eslint src/**/*.ts && jest",
     "start": "ts-node src/server.ts",
-    "start:watch": "nodemon -e ts,json,graphql"
+    "start:watch": "nodemon -e ts,json,graphql",
+    "codegen": "graphql-codegen --config codegen.yml",
+    "postinstall": "npm run codegen"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,10 @@
   },
   "homepage": "https://github.com/takkyuuplayer/book-learning-graphql#readme",
   "devDependencies": {
+    "@graphql-codegen/add": "^1.9.1",
+    "@graphql-codegen/cli": "^1.9.1",
+    "@graphql-codegen/typescript": "1.0.0",
+    "@graphql-codegen/typescript-resolvers": "^1.0.0",
     "@types/faker": "^4.1.8",
     "@types/jest": "^24.0.23",
     "@types/mongodb": "^3.3.12",
