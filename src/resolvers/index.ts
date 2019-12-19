@@ -2,63 +2,54 @@ import { GraphQLScalarType } from 'graphql';
 import { ulid } from 'ulid';
 import faker from 'faker';
 import { authorizeWithGithub } from '../lib';
+import {
+  QueryResolvers,
+  MutationResolvers,
+  PhotoResolvers,
+  UserResolvers,
+} from '../generated/graphql';
 
-interface IPhoto {
-  _id: string;
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  userID: string;
-  created: string;
-}
-interface IUser {
-  githubLogin: string;
-  name: String;
-  avatar: String;
-}
-
-export const Query = {
-  totalPhotos(parent: any, args: any, context: any) {
-    return context.db.collection('photo').estimatedDocumentCount();
+export const Query: QueryResolvers = {
+  totalPhotos(parent, args, { db }) {
+    return db.collection('photo').estimatedDocumentCount();
   },
-  allPhotos: (parent: any, args: any, context: any) => {
-    return context.db
+  allPhotos: (parent, args, { db }) => {
+    return db
       .collection('photos')
       .find()
       .toArray();
   },
-  totalUsers(parent: any, args: any, context: any) {
-    return context.db.collection('users').estimatedDocumentCount();
+  totalUsers(parent, args, { db }) {
+    return db.collection('users').estimatedDocumentCount();
   },
-  allUsers: (parent: any, args: any, context: any) => {
-    return context.db
+  allUsers: (parent, args, { db }) => {
+    return db
       .collection('users')
       .find()
       .toArray();
   },
-  me: (parent: any, args: any, context: any) => {
-    return context.currentUser;
+  me: (parent, args, { currentUser }) => {
+    return currentUser;
   },
 };
-export const Mutation = {
-  async postPhoto(parent: any, args: any, context: any) {
-    if (!context.currentUser) {
+
+export const Mutation: MutationResolvers = {
+  async postPhoto(parent, { input }, { db, currentUser }) {
+    if (!currentUser) {
       throw new Error('only an logged in user can post a photo');
     }
     const newPhoto = {
-      ...args.input,
-      userID: context.currentUser.githubLogin,
+      ...input,
+      userID: currentUser.githubLogin,
       created: new Date(),
-    };
-    const { insertedIds } = await context.db
-      .collection('photos')
-      .insert(newPhoto);
+    } as any;
+
+    const { insertedIds } = await db.collection('photos').insert(newPhoto);
     newPhoto.id = insertedIds[0];
 
     return newPhoto;
   },
-  async githubAuth(parent: any, args: any, context: any) {
+  async githubAuth(parent, args, { db }) {
     const {
       message,
       accessToken,
@@ -82,13 +73,13 @@ export const Mutation = {
     };
     const {
       ops: [user],
-    } = await context.db
+    } = await db
       .collection('users')
       .replaceOne({ githubLogin: login }, latestUserInfo, { upsert: true });
     return { user, token: accessToken };
   },
-  async addFakeUsers(parent: any, args: any, context: any) {
-    const users = [];
+  async addFakeUsers(parent, args, { db }) {
+    const users: Array<any> = [];
     for (let i = 0; i < args.count; i++) {
       const user = {
         githubLogin: faker.internet.userName(),
@@ -98,12 +89,12 @@ export const Mutation = {
       };
       users.push(user);
     }
-    await context.db.collection('users').insert(users);
+    await db.collection('users').insert(users);
 
     return users;
   },
-  async fakeUserAuth(parent: any, args: any, context: any) {
-    const user = await context.db
+  async fakeUserAuth(parent, args, { db }) {
+    const user = await db
       .collection('users')
       .findOne({ githubLogin: args.githubLogin });
     if (!user) {
@@ -115,16 +106,16 @@ export const Mutation = {
     };
   },
 };
-export const Photo = {
-  id: (parent: any) => parent.id || parent._id,
-  url: (parent: IPhoto) => `https://yoursite.com/img/${parent._id}.jpg`,
-  postedBy: async (parent: IPhoto, args: any, context: any) =>
-    await context.db
-      .collection('users')
-      .findOne({ githubLogin: parent.userID }),
+
+export const Photo: PhotoResolvers = {
+  id: parent => parent.id || parent._id,
+  url: parent => `https://yoursite.com/img/${parent._id}.jpg`,
+  postedBy: async (parent, args, { db }) =>
+    await db.collection('users').findOne({ githubLogin: parent.userID }),
 };
-export const User = {
-  postedPhotos: async (parent: IUser, args: any, context: any) =>
+
+export const User: UserResolvers = {
+  postedPhotos: async (parent, args, context) =>
     await context.db
       .collection('photos')
       .find({ userID: parent.githubLogin })
