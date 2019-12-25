@@ -2,27 +2,38 @@ import React from 'react';
 import { Query } from 'react-apollo';
 import { ROOT_QUERY } from './App';
 import { User } from '../../src/generated/graphql';
+import { ApolloQueryResult } from 'apollo-boost';
+
+interface Data {
+  totalUsers: number;
+  allUsers: Array<User>;
+}
+
 const Users = () => (
-  <Query query={ROOT_QUERY} pollInterval={1000 * 10}>
-    {({ data, loading, refetch }: any) =>
+  <Query<Data> query={ROOT_QUERY} pollInterval={1000 * 10}>
+    {({ data, loading, refetch }) =>
       loading ? (
         <p>loading users...</p>
       ) : (
         <UserList
-          count={data.totalUsers}
-          users={data.allUsers}
+          count={(data as Data).totalUsers}
+          users={(data as Data).allUsers}
           refetchUsers={refetch}
         />
       )
     }
   </Query>
 );
-interface UserListInput {
+
+const UserList = ({
+  count,
+  users,
+  refetchUsers,
+}: {
   count: number;
   users: Array<User>;
-  refetchUsers: any 
-}
-const UserList = ({ count, users, refetchUsers }: UserListInput) => (
+  refetchUsers: () => Promise<ApolloQueryResult<Data>>;
+}) => (
   <div>
     <p>{count} Users</p>
     <button onClick={() => refetchUsers()}>Refetch Users</button>
