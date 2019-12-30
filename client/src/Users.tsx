@@ -5,9 +5,10 @@ import { User } from '../../src/generated/graphql';
 import { ApolloQueryResult } from 'apollo-boost';
 import { gql } from 'apollo-boost'
 
-interface Data {
+export interface Data {
   totalUsers: number;
   allUsers: Array<User>;
+  me: User;
 }
 
 const ADD_FAKE_USERS_MUTATION = gql`
