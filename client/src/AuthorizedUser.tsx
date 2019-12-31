@@ -1,7 +1,8 @@
-import React, { Component, useState } from 'react';
+import React, { Component, useState, ComponentType } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
-import { Query, Mutation} from 'react-apollo'
+import { Query, Mutation, withApollo} from 'react-apollo'
+import { compose } from 'recompose'
 import { gql } from 'apollo-boost'
 import { ROOT_QUERY } from './App'
 import { Data } from './Users'
@@ -13,9 +14,9 @@ githubAuth(code:$code) { token }
 
 const Me = ({ logout, requestCode, signingIn }: any) => (
   <Query<Data> query={ROOT_QUERY}>
-    {({ data, loading, refetch}) =>
+    {({ data, loading}) =>
       data && (data as Data).me ? (
-        <CurrentUser {...(data as Data).me} logout={() => { logout(); refetch(); }} />
+        <CurrentUser {...(data as Data).me} logout={logout} />
       ) : loading ? (
         <p>loading users...</p>
       ) : (
@@ -66,12 +67,15 @@ class AuthorizedUser extends Component<RouteComponentProps> {
             <Me
               signingIn={this.state.signingIn}
               requestCode={this.requestCode}
-              logout={() => localStorage.removeItem('token')}
-            />
+              logout={async () => {
+                localStorage.removeItem('token')
+                let data: Data = await (this.props as any).client.readQuery({ query: ROOT_QUERY })
+                await (this.props as any).client.writeQuery({ query: ROOT_QUERY, data: {...data, me: null}})
+              }} />
           );
         }}
       </Mutation>
     );
   }
 }
-export default withRouter(AuthorizedUser);
+export default compose(withApollo, withRouter)(AuthorizedUser as any);

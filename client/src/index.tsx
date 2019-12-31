@@ -5,10 +5,21 @@ import fetch from 'node-fetch';
 import App from './App'
 import { ApolloProvider } from 'react-apollo'
 import { createHttpLink } from 'apollo-link-http';
-import { InMemoryCache } from "apollo-cache-inmemory";
+import { InMemoryCache, NormalizedCacheObject } from "apollo-cache-inmemory";
 import { setContext } from 'apollo-link-context';
+import { persistCache } from 'apollo-cache-persist'
 
 const link = createHttpLink({ uri: 'http://localhost:4000/graphql', fetch: fetch as any });
+const cache = new InMemoryCache();
+persistCache({
+  cache,
+  storage: localStorage as any,
+})
+
+if (localStorage['apollo-cache-persist']) {
+  let cacheData = JSON.parse(localStorage['apollo-cache-persist']);
+  cache.restore(cacheData);
+}
 const client = new ApolloClient({
     link: setContext((_, { headers }) => {
       return {
@@ -18,7 +29,7 @@ const client = new ApolloClient({
         }
       }
     }).concat(link),
-    cache: new InMemoryCache(),
+    cache,
 })
 
 render(
