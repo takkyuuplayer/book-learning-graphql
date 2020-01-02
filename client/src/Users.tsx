@@ -2,7 +2,7 @@ import React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { ROOT_QUERY } from './App';
 import { User } from '../../src/generated/graphql';
-import { ApolloQueryResult, NormalizedCacheObject, MutationUpdaterFn } from 'apollo-boost';
+import { ApolloQueryResult, MutationUpdaterFn } from 'apollo-boost';
 import { gql } from 'apollo-boost'
 
 export type Data  = {

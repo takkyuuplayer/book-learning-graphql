@@ -1,11 +1,13 @@
-import React, { Component, useState, ComponentType } from 'react';
+import React, { Component, useState, ComponentType, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
-import { Query, Mutation, withApollo} from 'react-apollo'
-import { compose } from 'recompose'
-import { gql } from 'apollo-boost'
-import { ROOT_QUERY } from './App'
-import { Data } from './Users'
+import { Query, Mutation, withApollo, useMutation } from 'react-apollo';
+import { MutationUpdaterFn } from 'apollo-boost';
+import { compose } from 'recompose';
+import { gql } from 'apollo-boost';
+import { ROOT_QUERY } from './App';
+import { Data } from './Users';
+import { AuthPayload } from '../../src/generated/graphql';
 const GITHUB_AUTH_MUTATION = gql`
   mutation githubAuth($code: String!) {
     githubAuth(code: $code) {
@@ -16,7 +18,7 @@ const GITHUB_AUTH_MUTATION = gql`
 
 const Me = ({ logout, requestCode, signingIn }: any) => (
   <Query<Data> query={ROOT_QUERY}>
-    {({ data, loading}) =>
+    {({ data, loading }) =>
       data && (data as Data).me ? (
         <CurrentUser {...(data as Data).me} logout={logout} />
       ) : loading ? (
@@ -38,52 +40,57 @@ const CurrentUser = ({ name, avatar, logout }: any) => (
   </div>
 );
 
-//const AuthorizedUser2: React.SFC = ({
-//}) => {
-//  const [singingIn, setSigningIn] = useState(false);
-//}
+const AuthorizedUser: React.SFC<RouteComponentProps & { client: any}> = ({ history, client }) => {
+  const [signingIn, setSigningIn] = useState(false);
 
-class AuthorizedUser extends Component<RouteComponentProps> {
-  state = { signingIn: false };
-  componentDidMount() {
-    if (window.location.search.match(/code=/)) {
-      this.setState({ signingIn: true });
-      const code = window.location.search.replace('?code=', '');
-      this.githubAuthMutation({ variables: { code } });
+  const authorizationComplete: MutationUpdaterFn<{
+    githubAuth: AuthPayload;
+  }> = (cache, response) => {
+
+    if(response.data) {
+      localStorage.setItem('token', (response.data).githubAuth.token);
     }
-  }
-  authorizationComplete = (cache: any, { data }: any) => {
-    localStorage.setItem('token', data.githubAuth.token);
-    this.props.history.replace('/');
-    this.setState({ signingIn: false });
+
+    history.replace('/');
+    setSigningIn(false);
   };
-  requestCode() {
+
+  const [githubAuthMutation] = useMutation<
+    {githubAuth: AuthPayload}, // Response payloadof GITHUB_AUTH_MUTATION
+    { code: string}  // Request Payload for GITHUB_AUTH_MUTATION
+  >(GITHUB_AUTH_MUTATION, {
+    update: authorizationComplete,
+  });
+
+  useEffect(() => {
+    if (window.location.search.match(/code=/) && !signingIn) {
+      setSigningIn(true);
+      const code = window.location.search.replace('?code=', '');
+      githubAuthMutation({ variables: { code } });
+    }
+  }); 
+
+  function requestCode() {
     var clientID = '4601eb907ae6bd3f5847';
     window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientID}&scope=user`;
   }
-  githubAuthMutation(args: any) {}
-  render() {
-    return (
-      <Mutation
-        mutation={GITHUB_AUTH_MUTATION}
-        update={this.authorizationComplete}
-        refetchQueries={[{ query: ROOT_QUERY }]}
-      >
-        {(mutation: any) => {
-          this.githubAuthMutation = mutation;
-          return (
-            <Me
-              signingIn={this.state.signingIn}
-              requestCode={this.requestCode}
-              logout={async () => {
-                localStorage.removeItem('token')
-                let data: Data = await (this.props as any).client.readQuery({ query: ROOT_QUERY })
-                await (this.props as any).client.writeQuery({ query: ROOT_QUERY, data: {...data, me: null}})
-              }} />
-          );
-        }}
-      </Mutation>
-    );
-  }
-}
+
+  return (
+          <Me
+            signingIn={signingIn}
+            requestCode={requestCode}
+            logout={async () => {
+              localStorage.removeItem('token');
+              let data: Data = await client.readQuery({
+                query: ROOT_QUERY,
+              });
+              await client.writeQuery({
+                query: ROOT_QUERY,
+                data: { ...data, me: null },
+              });
+            }}
+          />
+        );
+};
+
 export default compose(withApollo, withRouter)(AuthorizedUser as any);
