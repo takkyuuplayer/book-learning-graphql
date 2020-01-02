@@ -1,7 +1,7 @@
 import React, { Component, useState, ComponentType, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
-import { Query, Mutation, withApollo, useMutation } from 'react-apollo';
+import { Query, Mutation, withApollo, MutationFunction} from 'react-apollo';
 import { MutationUpdaterFn } from 'apollo-boost';
 import { compose } from 'recompose';
 import { gql } from 'apollo-boost';
@@ -55,13 +55,7 @@ const AuthorizedUser: React.SFC<RouteComponentProps & { client: any}> = ({ histo
     setSigningIn(false);
   };
 
-  const [githubAuthMutation] = useMutation<
-    {githubAuth: AuthPayload}, // Response payloadof GITHUB_AUTH_MUTATION
-    { code: string}  // Request Payload for GITHUB_AUTH_MUTATION
-  >(GITHUB_AUTH_MUTATION, {
-    update: authorizationComplete,
-  });
-
+  let githubAuthMutation: MutationFunction<{ githubAuth: AuthPayload}>;
   useEffect(() => {
     if (window.location.search.match(/code=/) && !signingIn) {
       setSigningIn(true);
@@ -76,14 +70,20 @@ const AuthorizedUser: React.SFC<RouteComponentProps & { client: any}> = ({ histo
   }
 
   return (
+    <Mutation<{ githubAuth: AuthPayload }>
+      mutation={GITHUB_AUTH_MUTATION}
+      update={authorizationComplete}
+      refetchQueries={[{ query: ROOT_QUERY }]}
+    >
+      {(mutation) => {
+        githubAuthMutation = mutation;
+        return (
           <Me
             signingIn={signingIn}
             requestCode={requestCode}
             logout={async () => {
               localStorage.removeItem('token');
-              let data: Data = await client.readQuery({
-                query: ROOT_QUERY,
-              });
+              let data: Data = await client.readQuery({ query: ROOT_QUERY });
               await client.writeQuery({
                 query: ROOT_QUERY,
                 data: { ...data, me: null },
@@ -91,6 +91,9 @@ const AuthorizedUser: React.SFC<RouteComponentProps & { client: any}> = ({ histo
             }}
           />
         );
+      }}
+    </Mutation>
+  );
 };
 
 export default compose(withApollo, withRouter)(AuthorizedUser as any);
