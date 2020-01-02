@@ -7,10 +7,12 @@ import { gql } from 'apollo-boost'
 import { ROOT_QUERY } from './App'
 import { Data } from './Users'
 const GITHUB_AUTH_MUTATION = gql`
-mutation githubAuth($code:String!) {
-githubAuth(code:$code) { token }
-}
-`
+  mutation githubAuth($code: String!) {
+    githubAuth(code: $code) {
+      token
+    }
+  }
+`;
 
 const Me = ({ logout, requestCode, signingIn }: any) => (
   <Query<Data> query={ROOT_QUERY}>
@@ -35,6 +37,12 @@ const CurrentUser = ({ name, avatar, logout }: any) => (
     <button onClick={logout}>logout</button>
   </div>
 );
+
+//const AuthorizedUser2: React.SFC = ({
+//}) => {
+//  const [singingIn, setSigningIn] = useState(false);
+//}
+
 class AuthorizedUser extends Component<RouteComponentProps> {
   state = { signingIn: false };
   componentDidMount() {

@@ -2,9 +2,8 @@ import React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { ROOT_QUERY } from './App';
 import { User } from '../../src/generated/graphql';
-import { ApolloQueryResult, NormalizedCacheObject } from 'apollo-boost';
+import { ApolloQueryResult, NormalizedCacheObject, MutationUpdaterFn } from 'apollo-boost';
 import { gql } from 'apollo-boost'
-import { PersistedData, PersistentStorage } from 'apollo-cache-persist/types';
 
 export type Data  = {
   totalUsers: number;
@@ -37,15 +36,21 @@ const Users = () => (
   </Query>
 );
 
-const updateUserCache = (cache: any, { data: { addFakeUsers } }: any) => {
-  let data = cache.readQuery({ query: ROOT_QUERY });
-  data.totalUsers += addFakeUsers.length;
-  data.allUsers = [...data.allUsers, ...addFakeUsers];
+const updateUserCache: MutationUpdaterFn<{addFakeUsers: Array<User>}> = (
+  cache,
+  response,
+)  => {
+  if(!response.data) {
+    return
+  }
+
+  const { data: { addFakeUsers }} = response;
+  let data = cache.readQuery({ query: ROOT_QUERY }) as Data;
   cache.writeQuery({
     query: ROOT_QUERY,
     data: {
       ...data,
-      totalUsers: data.totalUsers + addFakeUsers,
+      totalUsers: data.totalUsers + addFakeUsers.length,
       allUsers: [...data.allUsers, ...addFakeUsers],
     },
   });
@@ -62,7 +67,7 @@ const UserList = ({
   <div>
     <p>{count} Users</p>
     <button onClick={() => refetchUsers()}>Refetch Users</button>
-    <Mutation<User>
+    <Mutation<{addFakeUsers: Array<User>}>
       mutation={ADD_FAKE_USERS_MUTATION}
       variables={{ count: 1 }}
       refetchQueries={[{ query: ROOT_QUERY }]}
