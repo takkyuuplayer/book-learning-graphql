@@ -5,7 +5,7 @@ import fetch from 'node-fetch';
 import App from './App'
 import { ApolloProvider } from 'react-apollo'
 import { createHttpLink } from 'apollo-link-http';
-import { InMemoryCache, NormalizedCacheObject } from "apollo-cache-inmemory";
+import { InMemoryCache } from "apollo-cache-inmemory";
 import { setContext } from 'apollo-link-context';
 import { persistCache } from 'apollo-cache-persist'
 

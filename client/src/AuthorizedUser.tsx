@@ -1,4 +1,4 @@
-import React, { Component, useState, ComponentType, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import { Query, Mutation, withApollo, MutationFunction} from 'react-apollo';
