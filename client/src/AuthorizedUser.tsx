@@ -62,7 +62,7 @@ const AuthorizedUser: React.SFC<RouteComponentProps & { client: any}> = ({ histo
       const code = window.location.search.replace('?code=', '');
       githubAuthMutation({ variables: { code } });
     }
-  }); 
+  }, [signingIn, githubAuthMutation]); 
 
   function requestCode() {
     var clientID = '4601eb907ae6bd3f5847';
