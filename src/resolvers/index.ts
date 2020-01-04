@@ -2,7 +2,6 @@ import { GraphQLScalarType } from 'graphql';
 import { ulid } from 'ulid';
 import faker from 'faker';
 import { authorizeWithGithub } from '../lib';
-import { User } from '../../src/generated/graphql';
 import {
   QueryResolvers,
   MutationResolvers,
