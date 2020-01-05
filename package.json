@@ -26,6 +26,7 @@
     "@graphql-codegen/typescript": "1.0.0",
     "@graphql-codegen/typescript-resolvers": "^1.0.0",
     "@types/faker": "^4.1.8",
+    "@types/graphql-depth-limit": "^1.1.2",
     "@types/jest": "^24.0.23",
     "@types/mongodb": "^3.3.12",
     "@typescript-eslint/eslint-plugin": "^2.11.0",
@@ -42,6 +43,8 @@
     "faker": "^4.1.0",
     "graphql": "^14.5.8",
     "graphql-playground-middleware-express": "^1.7.12",
+    "graphql-query-complexity": "^0.4.1",
+    "graphql-validation-complexity": "^0.2.5",
     "jest": "^24.9.0",
     "mongodb": "^3.4.0",
     "nodemon": "^2.0.2",
@@ -50,5 +53,8 @@
     "ts-node": "^8.5.4",
     "typescript": "^3.7.3",
     "ulid": "^2.3.0"
+  },
+  "dependencies": {
+    "graphql-depth-limit": "^1.1.0"
   }
 }

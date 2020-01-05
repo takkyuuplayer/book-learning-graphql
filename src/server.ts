@@ -6,6 +6,10 @@ import * as resolvers from './resolvers';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { MongoClient } from 'mongodb';
+import depthLimit from 'graphql-depth-limit';
+const {
+  createComplexityLimitRule,
+}: any = require('graphql-validation-complexity');
 
 config({ path: resolve(__dirname, '../.env') });
 
@@ -26,6 +30,12 @@ async function start() {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
+    validationRules: [
+      depthLimit(5),
+      createComplexityLimitRule(1000, {
+        onCost: (cost: number) => console.log(`query cost: ${cost}`),
+      }),
+    ],
     context: async ({ req }) => {
       const githubToken = req.headers.authorization;
       const currentUser = await db.collection('users').findOne({
