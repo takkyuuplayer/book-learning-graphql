@@ -22,7 +22,7 @@
   "homepage": "https://github.com/takkyuuplayer/book-learning-graphql#readme",
   "devDependencies": {
     "@graphql-codegen/add": "^1.9.1",
-    "@graphql-codegen/cli": "^1.9.1",
+    "@graphql-codegen/cli": "^1.21.8",
     "@graphql-codegen/typescript": "1.0.0",
     "@graphql-codegen/typescript-resolvers": "^1.0.0",
     "@types/faker": "^4.1.8",
